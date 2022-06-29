@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="Product_Type">
+	
+	<select id="getProductType1" resultType="productType">
+		select distinct type1 from PRODUCT_TYPES
+	</select>
+	
+	<select id="getProductType2" parameterType="String" resultType="productType">
+		select type2 from PRODUCT_TYPES where TYPE1=#{Type1}
+	</select>
+	
+</mapper>

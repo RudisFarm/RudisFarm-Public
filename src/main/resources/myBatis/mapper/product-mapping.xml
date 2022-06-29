@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ProductDAO">
+
+	<select id="getProductListCount" parameterType="java.util.HashMap" resultType="int"> <!-- and p.COUNT > 0 -->
+		<choose>
+	 		<when test='user.equals("구매자")'>	
+				select count(*) from product p join user u where 
+			  	p.USER_ID = u.USER_ID
+				and u.STATUS = 1 
+			 		<if test='keyword != null and !keyword.equals("")'>
+			 		 	and p.PRODUCT_NAME LIKE CONCAT('%',#{keyword},'%')
+			 		</if> 
+					<if test='type1 != null and !type1.equals("")'>
+			 		 	and p.type1=#{type1}
+			 		</if> 
+					<if test='type2 != null and !type2.equals("")'>
+			 		 	and p.type2=#{type2}
+			 		</if> 
+			  </when>
+			  
+			  <when test='user.equals("판매자")'>
+			  	select count(*) from product where user_id=#{user_id}
+			 		<if test='keyword != null and !keyword.equals("")'>
+			 		 	and PRODUCT_NAME LIKE CONCAT('%',#{keyword},'%')
+			 		</if> 
+					<if test='type1 != null and !type1.equals("")'>
+			 		 	and type1=#{type1}
+			 		</if> 
+					<if test='type2 != null and !type2.equals("")'>
+			 		 	and type2=#{type2}
+			 		</if> 
+			  </when>
+			  
+			  <when test='user.equals("관리자")'>
+				select count(*) from product p join user u where 
+			  	p.USER_ID = u.USER_ID
+				and u.STATUS = #{status}
+			 		<if test='keyword != null and !keyword.equals("")'>
+			 		 	and p.PRODUCT_NAME LIKE CONCAT('%',#{keyword},'%')
+			 		</if> 
+					<if test='type1 != null and !type1.equals("")'>
+			 		 	and p.type1=#{type1}
+			 		</if> 
+					<if test='type2 != null and !type2.equals("")'>
+			 		 	and p.type2=#{type2}
+			 		</if> 
+			  </when>
+		  </choose>
+	</select>
+	
+	<select id="getProductList" parameterType="java.util.HashMap" resultType="product"> <!-- and p.COUNT > 0 -->
+		<choose>
+	 		<when test='user.equals("구매자")'>		
+				select p.* from product p join user u
+				where p.USER_ID = u.USER_ID
+				and u.STATUS = 1 
+					 <if test='keyword != null and !keyword.equals("")'>
+			 			and p.PRODUCT_NAME LIKE CONCAT('%',#{keyword},'%')
+			 		</if>
+				
+					<if test='type1 != null and !type1.equals("")'>
+			 		 	and p.type1=#{type1}
+			 		</if> 
+			 		
+			 		<if test='type2 != null and !type2.equals("")'>
+			 		 	and p.type2=#{type2} 
+			 		</if> 
+				order by 
+					<if test='sort != null and sort.equals("INPUTDATE")'>
+			 			p.inputdate desc
+			 		</if>
+					<if test='sort != null and sort.equals("COUNT")'>
+			 		 	p.viewcount desc
+			 		</if> 
+			 		<if test='sort != null and sort.equals("PRICEUP")'>
+			 		 	p.price desc
+			 		</if> 
+			 		<if test='sort != null and sort.equals("PRICEDOWN")'>
+			 		 	p.price asc
+			 		</if> 
+	  			limit #{currentPage}, #{limit}
+	  		</when>
+	  		
+	  		<when test='user.equals("판매자")'>
+	  			select * from product where user_id=#{user_id}
+					 <if test='keyword != null and !keyword.equals("")'>
+			 			and PRODUCT_NAME LIKE CONCAT('%',#{keyword},'%')
+			 		</if>
+					<if test='type1 != null and !type1.equals("")'>
+			 		 	and type1=#{type1}
+			 		</if> 
+			 		<if test='type2 != null and !type2.equals("")'>
+			 		 	and type2=#{type2}
+			 		</if> 
+				order by 
+					<if test='sort != null and sort.equals("INPUTDATE")'>
+			 			inputdate desc
+			 		</if>
+					<if test='sort != null and sort.equals("COUNT")'>
+			 		 	viewcount desc
+			 		</if> 
+			 		<if test='sort != null and sort.equals("PRICEUP")'>
+			 		 	price desc
+			 		</if> 
+			 		<if test='sort != null and sort.equals("PRICEDOWN")'>
+			 		 	price asc
+			 		</if> 
+	  			limit #{currentPage}, #{limit} 	  			
+	  		</when>
+
+	 		<when test='user.equals("관리자")'>		
+				select p.*, u.status from product p join user u
+				where p.USER_ID = u.USER_ID
+				and u.STATUS = #{status}
+					 <if test='keyword != null and !keyword.equals("")'>
+			 			and p.PRODUCT_NAME LIKE CONCAT('%',#{keyword},'%')
+			 		</if>
+				
+					<if test='type1 != null and !type1.equals("")'>
+			 		 	and p.type1=#{type1}
+			 		</if> 
+			 		
+			 		<if test='type2 != null and !type2.equals("")'>
+			 		 	and p.type2=#{type2} 
+			 		</if> 
+				order by 
+					<if test='sort != null and sort.equals("INPUTDATE")'>
+			 			p.inputdate desc
+			 		</if>
+					<if test='sort != null and sort.equals("COUNT")'>
+			 		 	p.viewcount desc
+			 		</if> 
+			 		<if test='sort != null and sort.equals("PRICEUP")'>
+			 		 	p.price desc
+			 		</if> 
+			 		<if test='sort != null and sort.equals("PRICEDOWN")'>
+			 		 	p.price asc
+			 		</if> 
+	  			limit #{currentPage}, #{limit} 
+	  		</when>	  		
+	  	</choose>
+	</select>
+	
+	<select id="getProduct" resultType="product" parameterType="product">
+		select * from PRODUCT WHERE PRODUCT_ID = #{PRODUCT_ID}
+	</select>
+	
+	<update id="updateProduct" parameterType="product" useGeneratedKeys="true" keyProperty="PRODUCT_ID">
+		update product set PRODUCT_NAME=#{PRODUCT_NAME}, PRICE=#{PRICE}, COUNT=#{COUNT}, WEIGHT=#{WEIGHT}, DESCRIPTION=#{DESCRIPTION}, TYPE1=#{TYPE1}, TYPE2=#{TYPE2} where product_id=#{PRODUCT_ID};
+	</update>
+		
+	<delete id="deleteProduct" parameterType="product">
+	<![CDATA[
+		delete from product where product_id = #{PRODUCT_ID} and 1 > (select count(*) from orders where product_id =#{PRODUCT_ID});
+	]]>
+	</delete>
+
+	<insert id="insertProduct" parameterType="product" useGeneratedKeys="true" keyProperty="PRODUCT_ID">
+		insert into PRODUCT (USER_ID,PRODUCT_NAME,PRICE,WEIGHT,COUNT,DESCRIPTION,TYPE1,TYPE2,SUMNAIL,FILES)
+		values(#{USER_ID},#{PRODUCT_NAME},#{PRICE},#{WEIGHT},#{COUNT},#{DESCRIPTION},#{TYPE1},#{TYPE2},"","")
+	</insert>
+	
+	<update id="updateProductCount" parameterType="product">
+		update PRODUCT
+		set COUNT = COUNT + #{COUNT}
+		where PRODUCT_ID = #{PRODUCT_ID}
+	</update>
+	
+	<!-- 기능 -->
+	<select id="getProductRandomList" resultType="product">
+		select p.* from product p join user u
+		where p.USER_ID = u.USER_ID and u.STATUS = 1 and u.PREMIUM_COUNT > 0 and p.COUNT > 0 order by rand() limit 5
+	</select>
+	
+	<select id="getProductRandomListSide" resultType="product">
+		select p.* from product p join user u
+		where p.USER_ID = u.USER_ID and u.STATUS = 1 and p.COUNT > 0 order by rand() limit 5
+	</select>
+	
+	<!-- 기능 -->
+	<select id="getProductOrderList" resultType="product">
+		select p.* from product p join user u
+		where p.USER_ID = u.USER_ID and u.STATUS = 1 and p.USER_ID=#{USER_ID} order by rand() limit 6
+	</select>
+	
+	<update id="updateProductViewCount">
+		update product set viewcount=viewcount+1 where product_id=#{product_id};
+	</update>
+	
+	<update id="updateProductImage">
+		update product set SUMNAIL=#{SUMNAIL}, FILES=#{FILES} where product_id=#{PRODUCT_ID};
+	</update>
+	
+	<update id="updateProductImageSumnail">
+		update product set SUMNAIL=#{SUMNAIL} where product_id=#{PRODUCT_ID};
+	</update>
+	
+	<update id="updateProductImageFile">
+		update product set FILES=#{FILES} where product_id=#{PRODUCT_ID};
+	</update>
+	
+	<select id="checkSellerStatus" parameterType="String" resultType="int">
+		select status from user where user_id=#{USER_ID};
+	</select>
+		
+	<select id="checkCol" parameterType="java.util.HashMap" resultType="int">
+		select ${COL} from product where product_id=#{PRODUCT_ID};
+	</select>
+	
+	<select id="checkColUser" parameterType="java.util.HashMap" resultType="int">
+		select ${COL} from user where USER_ID=#{USER_ID};
+	</select>
+	
+	<update id="updatePrimiumCount">
+		update user set PREMIUM_COUNT=PREMIUM_COUNT-1 where user_id=#{USER_ID};
+	</update>
+	
+	<select id="getPremiumList" parameterType="String" resultType="premium">
+		select * from premium where USER_ID=#{USER_ID};
+	</select>
+	
+	<!-- 최고관리자용  -->
+	<delete id="deleteProductbyUserId" parameterType="product">
+		DELETE
+		FROM PRODUCT
+		WHERE USER_ID = #{USER_ID}
+	</delete>
+		
+	<delete id="cartDelete">
+		delete from cart where product_id= #{PRODUCT_ID};
+	</delete>
+	<!-- ADMIN INDEX -->
+	<select id="adminIndexProduct" parameterType="product" resultType="int">
+		SELECT COUNT(*)
+		FROM PRODUCT
+	</select>
+</mapper>

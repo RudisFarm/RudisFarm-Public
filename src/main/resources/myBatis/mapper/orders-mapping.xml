@@ -1,0 +1,723 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="OrdersDAO">
+
+	<select id="getBuyerOrdersListCount" parameterType="java.util.HashMap" resultType="int">
+		select count(*)
+		from orders
+		where user_id = #{user_id}
+		order by ordersdate desc
+	</select>
+
+	<select id="getBuyerOrdersList" parameterType="java.util.HashMap" resultType="orders">
+		select *
+		from orders
+		where user_id = #{user_id}
+		order by ordersdate desc
+		limit
+		#{currentPage}, #{limit}
+	</select>
+
+
+	<select id="getOrdersListCount"
+		parameterType="java.util.HashMap" resultType="int">
+		<choose>
+			<when test='user.equals("구매자")'>
+				select count(*) from orders p join user u where
+				p.USER_ID = u.USER_ID
+				and u.STATUS = 1
+				<if test='keyword != null and !keyword.equals("")'>
+					and p.name LIKE CONCAT('%',#{keyword},'%')
+				</if>
+				<if test='type1 != null and !type1.equals("")'>
+					and p.type1=#{type1}
+				</if>
+				<if test='type2 != null and !type2.equals("")'>
+					and p.type2=#{type2}
+				</if>
+			</when>
+
+			<when test='user.equals("판매자")'>
+				select count(*) from orders where user_id=#{user_id}
+				<if test='keyword != null and !keyword.equals("")'>
+					and name LIKE CONCAT('%',#{keyword},'%')
+				</if>
+				<if test='type1 != null and !type1.equals("")'>
+					and type1=#{type1}
+				</if>
+				<if test='type2 != null and !type2.equals("")'>
+					and type2=#{type2}
+				</if>
+			</when>
+
+			<when test='user.equals("관리자")'>
+				select count(*) from orders p join user u where
+				p.USER_ID = u.USER_ID
+				and u.STATUS = #{status}
+				<if test='keyword != null and !keyword.equals("")'>
+					and p.${keywordType} LIKE CONCAT('%',#{keyword},'%')
+				</if>
+				<if test='type1 != null and !type1.equals("")'>
+					and type1=#{type1}
+				</if>
+				<if test='type2 != null and !type2.equals("")'>
+					and type2=#{type2}
+				</if>
+				order by
+				<if test='sort != null and sort.equals("ORDERSDATE")'>
+					ordersdate desc
+				</if>
+				<!-- <if test='sort != null and sort.equals("COUNT")'> p.viewcount desc 
+					</if> -->
+				<if test='sort != null and sort.equals("PRICEUP")'>
+					price desc
+				</if>
+				<if test='sort != null and sort.equals("PRICEDOWN")'>
+					price asc
+				</if>
+			</when>
+		</choose>
+	</select>
+
+	<select id="getOrdersList" parameterType="java.util.HashMap"
+		resultType="orders">
+		<choose>
+			<when test='user.equals("구매자")'>
+				select *
+				from orders
+				where user_id = #{user_id}
+				limit
+				#{currentPage}, #{limit}
+			</when>
+
+			<when test='user.equals("판매자")'>
+				select *
+				from orders
+				where product_id in (select
+				PRODUCT_ID
+				from product
+				where user_id = #{user_id})
+				limit
+				#{currentPage}, #{limit}
+			</when>
+
+			<when test='user.equals("관리자")'>
+				select *
+				from orders
+				<if test='keyword != null and !keyword.equals("")'>
+					where ${keywordType} LIKE CONCAT('%',#{keyword},'%')
+				</if>
+				order by
+				<if test='sort != null and sort.equals("ORDERSDATE")'>
+					ordersdate desc
+				</if>
+				<!-- <if test='sort != null and sort.equals("COUNT")'> p.viewcount desc 
+					</if> -->
+				<if test='sort != null and sort.equals("PRICEUP")'>
+					total_price desc
+				</if>
+				<if test='sort != null and sort.equals("PRICEDOWN")'>
+					total_price asc
+				</if>
+				limit #{currentPage}, #{limit}
+			</when>
+		</choose>
+	</select>
+
+	<!-- <select id="getOrders" resultType="orders" parameterType="orders"> -->
+	<!-- select * from ORDERS WHERE ORDERS_ID = #{ORDERS_ID} -->
+	<!-- </select> -->
+
+	<update id="updateOrders" parameterType="orders">
+		update orders
+		set status = #{STATUS}
+		where orders_id = #{ORDERS_ID}
+	</update>
+
+	<delete id="deleteOrders">
+		update orders set status = '주문 취소'
+		where orders_id = #{ORDERS_ID}
+	</delete>
+
+	<insert id="insertOrders" parameterType="orders">
+<!-- 		useGeneratedKeys="true" keyProperty="ORDERS_ID"> -->
+		insert into ORDERS
+		(ORDERS_NAME, USER_ID, USER_NAME, PHONE, DELIVERY_MESSAGE, FIR_ADDRESS, SEC_ADDRESS, PRODUCT_ID, COUNT, PRICE, TOTAL_PRICE)
+		values(#{ORDERS_NAME},#{USER_ID},#{USER_NAME},#{PHONE},#{DELIVERY_MESSAGE},#{FIR_ADDRESS},#{SEC_ADDRESS},#{PRODUCT_ID},#{COUNT},#{PRICE},#{TOTAL_PRICE})
+<!-- 		(USER_ID,NAME,PRICE,WEIGHT,COUNT,DESCRIPTION,TYPE1,TYPE2,SUMNAIL,FILES) -->
+<!-- 		values(#{USER_ID},#{NAME},#{PRICE},#{WEIGHT},#{COUNT},#{DESCRIPTION},#{TYPE1},#{TYPE2},"","") -->
+	</insert>
+
+<!-- 	<select id="getBuyerOrdersList" parameterType="orders" -->
+<!-- 		resultType="orders"> -->
+<!-- 		select * from ORDERS where USER_ID = #{USER_ID} -->
+<!-- 	</select> -->
+	
+	
+	<select id="getsellerReqexchangeManageList" parameterType="orders" resultType="orders">
+	
+		SELECT ORDERS_NAME, USER_ID, USER_NAME, PHONE, DELIVERY_MESSAGE, FIR_ADDRESS, SEC_ADDRESS, PRODUCT_ID, COUNT, PRICE, TOTAL_PRICE, ORDERSDATE, STATUS, EXCHANGE_MESSAGE, TRACKING_NUMBER, TRACKING_NAME,TRACKING_CODE 
+		FROM ORDERS
+		WHERE STATUS='교환 신청' AND PRODUCT_ID IN(SELECT PRODUCT_ID FROM PRODUCT WHERE USER_ID=#{USER_ID});
+		
+		
+	</select>
+
+	<select id="getAdminOrdersList" resultType="orders">
+		select * from ORDERS
+	</select>
+
+	<select id="getSellerOrdersList" resultType="orders">
+		select * from ORDERS
+	</select>
+
+	<select id="getOrders" resultType="orders"
+		parameterType="orders">
+		select * from ORDERS WHERE ORDERS_ID = #{ORDERS_ID}
+	</select>
+	
+	<select id="getOrdersbyOrdersName" resultType="orders"
+		parameterType="orders">
+		select * from ORDERS WHERE ORDERS_NAME = #{ORDERS_NAME}
+	</select>
+	
+	<select id="sellerExchangeDetail" parameterType="orders" resultType="orders">
+		SELECT ORDERS_NAME, USER_ID, USER_NAME, PHONE, DELIVERY_MESSAGE, FIR_ADDRESS, SEC_ADDRESS, PRODUCT_ID, COUNT, PRICE, TOTAL_PRICE, ORDERSDATE, STATUS, EXCHANGE_MESSAGE, TRACKING_NUMBER, TRACKING_NAME,TRACKING_CODE 
+		FROM ORDERS
+		WHERE STATUS='교환 신청' AND PRODUCT_ID IN(SELECT PRODUCT_ID FROM PRODUCT WHERE ORDERS_NAME=#{ORDERS_NAME})	
+	</select>
+	
+	<update id="sellerExchangeComplete" parameterType="orders">
+	 	UPDATE ORDERS 
+		SET STATUS = '교환 처리'  
+		WHERE ORDERS_NAME=#{ORDERS_NAME}
+
+	</update>
+	
+	<update id="sellerExchangeFalse" parameterType="orders">
+	 	UPDATE ORDERS 
+		SET STATUS = '교환 불가'  
+		WHERE ORDERS_NAME=#{ORDERS_NAME}
+
+	</update>
+	
+	<select id="getsellerReTurnManageList" parameterType="orders" resultType="orders">
+	
+		SELECT ORDERS_NAME, USER_ID, USER_NAME, PHONE, DELIVERY_MESSAGE, FIR_ADDRESS, SEC_ADDRESS, PRODUCT_ID, COUNT, PRICE, TOTAL_PRICE, ORDERSDATE, STATUS, EXCHANGE_MESSAGE, TRACKING_NUMBER, TRACKING_NAME,TRACKING_CODE 
+		FROM ORDERS
+		WHERE STATUS='반품 신청' AND PRODUCT_ID IN(SELECT PRODUCT_ID FROM PRODUCT WHERE USER_ID=#{USER_ID})
+		
+		
+	</select>
+	
+	<select id="sellerReturnDetail" parameterType="orders" resultType="orders">
+		SELECT ORDERS_NAME, USER_ID, USER_NAME, PHONE, DELIVERY_MESSAGE, FIR_ADDRESS, SEC_ADDRESS, PRODUCT_ID, COUNT, PRICE, TOTAL_PRICE, ORDERSDATE, STATUS, EXCHANGE_MESSAGE, TRACKING_NUMBER, TRACKING_NAME,TRACKING_CODE 
+		FROM ORDERS
+		WHERE STATUS='반품 신청' AND PRODUCT_ID IN(SELECT PRODUCT_ID FROM PRODUCT WHERE ORDERS_NAME=#{ORDERS_NAME})
+	</select>
+
+	<select id="getOrdersDetail" resultType="orders">
+		SELECT * FROM ORDERS
+		WHERE ORDERS_ID = #{ORDERS_ID}
+	</select>
+	<!-- 중간관리자 정보 갖고오기 -->
+	<select id="getSellerInfo" parameterType="orders"
+		resultType="user">
+		select * from user where
+		user_id IN(select user_id from
+		product where product_id in( select
+		product_id from orders where
+		orders_name = #{ORDERS_NAME}))
+	</select>
+
+	<update id="exchangeOrders" parameterType="orders">
+		update orders set status = '교환 신청', exchange_message = #{EXCHANGE_MESSAGE} 
+		where orders_id = #{ORDERS_ID}
+	</update>
+
+	<update id="cancelOrders" parameterType="orders">
+		update orders set status = '반품 신청', exchange_message = #{EXCHANGE_MESSAGE} 
+		where orders_id = #{ORDERS_ID}
+	</update>
+
+	<select id="exchangeCancel" resultType="orders">
+		select * from ORDERS
+		where ORDERS_ID = #{ORDERS_ID}
+	</select>
+	
+	<!-- 주문 정보 -->
+	<insert id="ordersInfo" parameterType="orders">
+		INSERT INTO
+		ORDERS(ORDERS_ID, ORDERS_NAME, USER_ID,
+		USER_NAME, PHONE,
+		DELIVERY_MESSAGE, FIR_ADDRESS, SEC_ADDRESS, PRODUCT_ID, COUNT, PRICE,
+		TOTAL_PRICE, ORDERSDATE,
+		STATUS,EXCHANGE_MESSAGE)
+		VALUES((#{ORDERS_ID},
+		#{ORDERS_NAME},
+		, #{USER_ID}, #{USER_NAME},#{PHONE},
+		#{DELIVERY_MESSAGE},#{FIR_ADDRESS}, #{SEC_ADDRESS},#{PRODUCT_ID}
+		,
+		#{COUNT}, #{PRICE}, #{TOTAL_PRICE},
+		#{ORDERSDATE},#{STATUS},#{EXCHANGE_MESSAGE})
+	</insert>
+
+	<update id="sellerReturnComplete" parameterType="orders">
+	 	UPDATE ORDERS 
+		SET STATUS = '반품 처리'  
+		WHERE ORDERS_NAME=#{ORDERS_NAME}
+
+	</update>
+	
+	<update id="sellerReturnFalse" parameterType="orders">
+	 	UPDATE ORDERS 
+		SET STATUS = '반품 불가'  
+		WHERE ORDERS_NAME=#{ORDERS_NAME}
+
+	</update>
+	
+	<select id="sellerOrdersExchangeListCount" parameterType="java.util.HashMap" resultType="int">
+		SELECT COUNT(*)
+		FROM ORDERS
+		WHERE STATUS='교환 신청' AND PRODUCT_ID IN(SELECT PRODUCT_ID FROM PRODUCT WHERE USER_ID=#{USER_ID})
+		<if test='keyword != null and !keyword.equals("")'>
+			and #{keywordType} LIKE CONCAT('%',#{keyword},'%')
+		</if>
+	</select>
+	<select id="sellerOrdersExchangeList" parameterType="java.util.HashMap" resultType="orders">
+	
+		SELECT ORDERS_NAME, USER_ID, USER_NAME, PHONE, DELIVERY_MESSAGE, FIR_ADDRESS, SEC_ADDRESS, PRODUCT_ID, COUNT, PRICE, TOTAL_PRICE, ORDERSDATE, STATUS, EXCHANGE_MESSAGE, TRACKING_NUMBER, TRACKING_NAME,TRACKING_CODE 
+		FROM ORDERS
+		WHERE STATUS='교환 신청' AND PRODUCT_ID IN(SELECT PRODUCT_ID FROM PRODUCT WHERE USER_ID=#{USER_ID})
+		
+		<if test='keyword != null and !keyword.equals("")'>
+			and #{keywordType} LIKE CONCAT('%',#{keyword},'%')
+		</if>
+		
+		ORDER BY ORDERSDATE desc
+		LIMIT #{currentPage}, 10
+	</select>
+	
+	
+	<select id="sellerOrdersReturnListCount" parameterType="java.util.HashMap" resultType="int">
+		SELECT COUNT(*)
+		FROM ORDERS
+		WHERE STATUS='반품 신청' AND PRODUCT_ID IN(SELECT PRODUCT_ID FROM PRODUCT WHERE USER_ID=#{USER_ID})
+		<if test='keyword != null and !keyword.equals("")'>
+			and #{keywordType} LIKE CONCAT('%',#{keyword},'%')
+		</if>
+	</select>
+	<select id="sellerOrdersReturnList" parameterType="java.util.HashMap" resultType="orders">
+	
+		SELECT ORDERS_NAME, USER_ID, USER_NAME, PHONE, DELIVERY_MESSAGE, FIR_ADDRESS, SEC_ADDRESS, PRODUCT_ID, COUNT, PRICE, TOTAL_PRICE, ORDERSDATE, STATUS, EXCHANGE_MESSAGE, TRACKING_NUMBER, TRACKING_NAME,TRACKING_CODE 
+		FROM ORDERS
+		WHERE STATUS='반품 신청' AND PRODUCT_ID IN(SELECT PRODUCT_ID FROM PRODUCT WHERE USER_ID=#{USER_ID})
+		
+		<if test='keyword != null and !keyword.equals("")'>
+			and #{keywordType} LIKE CONCAT('%',#{keyword},'%')
+		</if>
+		
+		ORDER BY ORDERSDATE desc
+		LIMIT #{currentPage}, 10
+	</select>
+	
+	<select id="getsuperAdminSellerPaymentList" parameterType="java.util.HashMap" resultType="orders">
+		SELECT P. PARTNER_ORDER_ID, O.USER_NAME, O.STATUS, O.DELIVERY_MESSAGE, P.ITEM_NAME, P.TOTAL_AMOUNT, 
+				P.STATUS, P.APPROVED_AT
+		FROM ORDERS O JOIN PAYMENT P
+		WHERE O.ORDERS_NAME = P.PARTNER_ORDER_ID
+		AND PRODUCT_ID IN (SELECT PRODUCT_ID
+		    				FROM PRODUCT
+		    				WHERE USER_ID = #{USER_ID})
+		ORDER BY CREATED_AT DESC
+		LIMIT #{currentPage}, 10
+	</select>
+	
+	<select id="getsuperAdminSellerPaymentListCount" parameterType="java.util.HashMap" resultType="int">
+		SELECT COUNT(*)
+		FROM ORDERS JOIN PAYMENT
+		WHERE ORDERS_NAME = PARTNER_ORDER_ID
+		AND PRODUCT_ID IN (SELECT PRODUCT_ID
+		    				FROM PRODUCT
+		    				WHERE USER_ID = #{USER_ID})
+	</select>
+	
+	<select id="sellerOrderListCount" parameterType="java.util.HashMap" resultType="int">
+		SELECT COUNT(*)
+		FROM ORDERS
+		WHERE STATUS='결제 완료' AND PRODUCT_ID IN(SELECT PRODUCT_ID FROM PRODUCT WHERE USER_ID=#{USER_ID})
+		<if test='keyword != null and !keyword.equals("")'>
+			and #{keywordType} LIKE CONCAT('%',#{keyword},'%')
+		</if>
+	</select>
+	<select id="sellerOrderList" parameterType="java.util.HashMap" resultType="orders">
+	
+		SELECT ORDERS_NAME, USER_ID, USER_NAME, PHONE, DELIVERY_MESSAGE, FIR_ADDRESS, SEC_ADDRESS, PRODUCT_ID, COUNT, PRICE, TOTAL_PRICE, ORDERSDATE, STATUS, EXCHANGE_MESSAGE, TRACKING_NUMBER, TRACKING_NAME,TRACKING_CODE 
+		FROM ORDERS
+		WHERE STATUS='결제 완료' AND PRODUCT_ID IN(SELECT PRODUCT_ID FROM PRODUCT WHERE USER_ID=#{USER_ID})
+		
+		<if test='keyword != null and !keyword.equals("")'>
+			and #{keywordType} LIKE CONCAT('%',#{keyword},'%')
+		</if>
+		
+		ORDER BY ORDERSDATE desc
+		LIMIT #{currentPage}, 10
+	</select>
+	
+	
+	
+	<select id="orderslistdetail" parameterType="orders" resultType="orders">
+		SELECT ORDERS_NAME, USER_ID, USER_NAME, PHONE, DELIVERY_MESSAGE, FIR_ADDRESS, SEC_ADDRESS, PRODUCT_ID, COUNT, PRICE, TOTAL_PRICE, ORDERSDATE, STATUS, EXCHANGE_MESSAGE, TRACKING_NUMBER, TRACKING_NAME,TRACKING_CODE 
+		FROM ORDERS
+		WHERE STATUS='결제 완료' AND PRODUCT_ID IN(SELECT PRODUCT_ID FROM PRODUCT WHERE ORDERS_NAME=#{ORDERS_NAME});
+
+		
+	</select>
+	<select id="orderslistdetailproductname" parameterType="orders" resultType="orders">
+	
+		SELECT PRODUCT_NAME
+		FROM PRODUCT 
+		WHERE PRODUCT_ID IN( 
+							SELECT PRODUCT_ID 
+							FROM ORDERS 
+							WHERE ORDERS_NAME = #{ORDERS_NAME});
+		
+	</select>
+	<select id="ordersemailsearch" parameterType="orders" resultType="orders">
+	 	
+	 	SELECT EMAIL, PHONE 
+	 	FROM USER 
+	 	WHERE USER_ID=( SELECT USER_ID 
+	 					FROM ORDERS 
+	 					WHERE ORDERS_NAME = #{ORDERS_NAME});
+		
+	</select>
+	<select id="ordersphonesearch" parameterType="orders" resultType="orders">
+	 	
+	 	SELECT PHONE 
+	 	FROM ORDERS
+	 	WHERE ORDERS_NAME = #{ORDERS_NAME};
+		
+	</select>
+	<select id="selectproductnamesearch" parameterType="orders" resultType="orders">
+	 	
+	 	SELECT PRODUCT_NAME 
+	 	FROM PRODUCT 
+	 	WHERE PRODUCT_ID = (SELECT PRODUCT_ID 
+	 						FROM ORDERS 
+	 						WHERE ORDERS_NAME = #{ORDERS_NAME});
+		
+	</select>
+	
+	
+	
+	
+	
+	
+	
+	
+	<update id="sellerOrderslistComplete" parameterType="orders">
+	 	UPDATE ORDERS 
+		SET STATUS = '배송 처리'  
+		WHERE ORDERS_NAME=#{ORDERS_NAME}
+
+	</update>
+	<update id="getTrackingNumberUpdate" parameterType="orders">
+		UPDATE ORDERS
+	    SET TRACKING_NUMBER = #{TRACKING_NUMBER}, TRACKING_NAME = #{TRACKING_NAME}, TRACKING_CODE = #{TRACKING_CODE}
+	    WHERE ORDERS_NAME = #{ORDERS_NAME}
+
+	</update>
+	
+	
+	
+	
+	
+	
+	
+	
+	<select id="sellerdeliverylistCount" parameterType="java.util.HashMap" resultType="int">
+		SELECT COUNT(*)
+		FROM ORDERS
+		WHERE STATUS='배송 처리' AND PRODUCT_ID IN(SELECT PRODUCT_ID FROM PRODUCT WHERE USER_ID=#{USER_ID})
+		<if test='keyword != null and !keyword.equals("")'>
+			and #{keywordType} LIKE CONCAT('%',#{keyword},'%')
+		</if>
+	</select>
+	<select id="sellerdeliverylist" parameterType="java.util.HashMap" resultType="orders">
+	
+		SELECT ORDERS_NAME, USER_ID, USER_NAME, PHONE, DELIVERY_MESSAGE, FIR_ADDRESS, SEC_ADDRESS, PRODUCT_ID, COUNT, PRICE, TOTAL_PRICE, ORDERSDATE, STATUS, EXCHANGE_MESSAGE, TRACKING_NUMBER, TRACKING_NAME,TRACKING_CODE 
+		FROM ORDERS
+		WHERE STATUS='배송 처리' AND PRODUCT_ID IN(SELECT PRODUCT_ID FROM PRODUCT WHERE USER_ID=#{USER_ID})
+		
+		<if test='keyword != null and !keyword.equals("")'>
+			and #{keywordType} LIKE CONCAT('%',#{keyword},'%')
+		</if>
+		
+		ORDER BY ORDERSDATE desc
+		LIMIT #{currentPage}, 10
+	</select>
+	
+	
+	
+	
+	
+	
+	
+	
+	<select id="deliverylistdetail" parameterType="orders" resultType="orders">
+		SELECT ORDERS_NAME, USER_ID, USER_NAME, PHONE, DELIVERY_MESSAGE, FIR_ADDRESS, SEC_ADDRESS, PRODUCT_ID, COUNT, PRICE, TOTAL_PRICE, ORDERSDATE, STATUS, EXCHANGE_MESSAGE, TRACKING_NUMBER, TRACKING_NAME,TRACKING_CODE 
+		FROM ORDERS
+		WHERE STATUS='배송 처리' AND PRODUCT_ID IN(SELECT PRODUCT_ID FROM PRODUCT WHERE ORDERS_NAME=#{ORDERS_NAME});
+
+		
+	</select>
+	<select id="deliverylistdetailname" parameterType="orders" resultType="orders">
+	
+		SELECT PRODUCT_NAME
+		FROM PRODUCT 
+		WHERE PRODUCT_ID IN( 
+							SELECT PRODUCT_ID 
+							FROM ORDERS 
+							WHERE ORDERS_NAME = #{ORDERS_NAME});
+		
+	</select>
+	
+	
+	
+	
+	
+	<select id="exchangecompleteListCount" parameterType="java.util.HashMap" resultType="int">
+		SELECT COUNT(*)
+		FROM ORDERS
+		WHERE STATUS='교환 처리' AND PRODUCT_ID IN(SELECT PRODUCT_ID FROM PRODUCT WHERE USER_ID=#{USER_ID})
+		<if test='keyword != null and !keyword.equals("")'>
+			and #{keywordType} LIKE CONCAT('%',#{keyword},'%')
+		</if>
+	</select>
+	<select id="exchangecompleteList" parameterType="java.util.HashMap" resultType="orders">
+	
+		SELECT ORDERS_NAME, USER_ID, USER_NAME, PHONE, DELIVERY_MESSAGE, FIR_ADDRESS, SEC_ADDRESS, PRODUCT_ID, COUNT, PRICE, TOTAL_PRICE, ORDERSDATE, STATUS, EXCHANGE_MESSAGE
+		FROM ORDERS
+		WHERE STATUS='교환 처리' AND PRODUCT_ID IN(SELECT PRODUCT_ID FROM PRODUCT WHERE USER_ID=#{USER_ID})
+		
+		<if test='keyword != null and !keyword.equals("")'>
+			and #{keywordType} LIKE CONCAT('%',#{keyword},'%')
+		</if>
+		
+		ORDER BY ORDERSDATE desc
+		LIMIT #{currentPage}, 10
+	</select>
+	
+	
+	
+	
+	
+	
+	
+	
+	<select id="exchcompldetail" parameterType="orders" resultType="orders">
+		SELECT ORDERS_NAME, USER_ID, USER_NAME, PHONE, DELIVERY_MESSAGE, FIR_ADDRESS, SEC_ADDRESS, PRODUCT_ID, COUNT, PRICE, TOTAL_PRICE, ORDERSDATE, STATUS, EXCHANGE_MESSAGE, TRACKING_NUMBER, TRACKING_NAME,TRACKING_CODE
+		FROM ORDERS
+		WHERE STATUS='교환 처리' AND PRODUCT_ID IN(SELECT PRODUCT_ID FROM PRODUCT WHERE ORDERS_NAME=#{ORDERS_NAME});
+
+		
+	</select>
+	<select id="exchcompldetailname" parameterType="orders" resultType="orders">
+	
+		SELECT PRODUCT_NAME
+		FROM PRODUCT 
+		WHERE PRODUCT_ID IN( 
+							SELECT PRODUCT_ID 
+							FROM ORDERS 
+							WHERE ORDERS_NAME = #{ORDERS_NAME});
+		
+	</select>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<select id="exchangeimpossibleListCount" parameterType="java.util.HashMap" resultType="int">
+		SELECT COUNT(*)
+		FROM ORDERS
+		WHERE STATUS='교환 불가' AND PRODUCT_ID IN(SELECT PRODUCT_ID FROM PRODUCT WHERE USER_ID=#{USER_ID})
+		<if test='keyword != null and !keyword.equals("")'>
+			and #{keywordType} LIKE CONCAT('%',#{keyword},'%')
+		</if>
+	</select>
+	<select id="exchangeimpossibleList" parameterType="java.util.HashMap" resultType="orders">
+	
+		SELECT ORDERS_NAME, USER_ID, USER_NAME, PHONE, DELIVERY_MESSAGE, FIR_ADDRESS, SEC_ADDRESS, PRODUCT_ID, COUNT, PRICE, TOTAL_PRICE, ORDERSDATE, STATUS, EXCHANGE_MESSAGE
+		FROM ORDERS
+		WHERE STATUS='교환 불가' AND PRODUCT_ID IN(SELECT PRODUCT_ID FROM PRODUCT WHERE USER_ID=#{USER_ID})
+		
+		<if test='keyword != null and !keyword.equals("")'>
+			and #{keywordType} LIKE CONCAT('%',#{keyword},'%')
+		</if>
+		
+		ORDER BY ORDERSDATE desc
+		LIMIT #{currentPage}, 10
+	</select>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<select id="exchImpossibledetail" parameterType="orders" resultType="orders">
+		SELECT ORDERS_NAME, USER_ID, USER_NAME, PHONE, DELIVERY_MESSAGE, FIR_ADDRESS, SEC_ADDRESS, PRODUCT_ID, COUNT, PRICE, TOTAL_PRICE, ORDERSDATE, STATUS, EXCHANGE_MESSAGE
+		FROM ORDERS
+		WHERE STATUS='교환 불가' AND PRODUCT_ID IN(SELECT PRODUCT_ID FROM PRODUCT WHERE ORDERS_NAME=#{ORDERS_NAME});
+
+		
+	</select>
+	<select id="exchImpossibledetailname" parameterType="orders" resultType="orders">
+	
+		SELECT PRODUCT_NAME
+		FROM PRODUCT 
+		WHERE PRODUCT_ID IN( 
+							SELECT PRODUCT_ID 
+							FROM ORDERS 
+							WHERE ORDERS_NAME = #{ORDERS_NAME});
+		
+	</select>
+
+	<select id="returncompleteListCount" parameterType="java.util.HashMap" resultType="int">
+		SELECT COUNT(*)
+		FROM ORDERS
+		WHERE STATUS='반품 처리' AND PRODUCT_ID IN(SELECT PRODUCT_ID FROM PRODUCT WHERE USER_ID=#{USER_ID})
+		<if test='keyword != null and !keyword.equals("")'>
+			and #{keywordType} LIKE CONCAT('%',#{keyword},'%')
+		</if>
+	</select>
+	<select id="returncompleteList" parameterType="java.util.HashMap" resultType="orders">
+	
+		SELECT ORDERS_NAME, USER_ID, USER_NAME, PHONE, DELIVERY_MESSAGE, FIR_ADDRESS, SEC_ADDRESS, PRODUCT_ID, COUNT, PRICE, TOTAL_PRICE, ORDERSDATE, STATUS, EXCHANGE_MESSAGE
+		FROM ORDERS
+		WHERE STATUS='반품 처리' AND PRODUCT_ID IN(SELECT PRODUCT_ID FROM PRODUCT WHERE USER_ID=#{USER_ID})
+		
+		<if test='keyword != null and !keyword.equals("")'>
+			and #{keywordType} LIKE CONCAT('%',#{keyword},'%')
+		</if>
+		
+		ORDER BY ORDERSDATE desc
+		LIMIT #{currentPage}, 10
+	</select>
+
+	
+	<select id="returncompletedetail" parameterType="orders" resultType="orders">
+		SELECT ORDERS_NAME, USER_ID, USER_NAME, PHONE, DELIVERY_MESSAGE, FIR_ADDRESS, SEC_ADDRESS, PRODUCT_ID, COUNT, PRICE, TOTAL_PRICE, ORDERSDATE, STATUS, EXCHANGE_MESSAGE, TRACKING_NUMBER, TRACKING_NAME,TRACKING_CODE 
+		FROM ORDERS
+		WHERE STATUS='반품 처리' AND PRODUCT_ID IN(SELECT PRODUCT_ID FROM PRODUCT WHERE ORDERS_NAME=#{ORDERS_NAME});
+
+		
+	</select>
+	<select id="returncompletedetailname" parameterType="orders" resultType="orders">
+	
+		SELECT PRODUCT_NAME
+		FROM PRODUCT 
+		WHERE PRODUCT_ID IN( 
+							SELECT PRODUCT_ID 
+							FROM ORDERS 
+							WHERE ORDERS_NAME = #{ORDERS_NAME});
+		
+	</select>
+	
+	
+	
+	
+	<select id="returnimpossibleListCount" parameterType="java.util.HashMap" resultType="int">
+		SELECT COUNT(*)
+		FROM ORDERS
+		WHERE STATUS='반품 불가' AND PRODUCT_ID IN(SELECT PRODUCT_ID FROM PRODUCT WHERE USER_ID=#{USER_ID})
+		<if test='keyword != null and !keyword.equals("")'>
+			and #{keywordType} LIKE CONCAT('%',#{keyword},'%')
+		</if>
+	</select>
+	<select id="returnimpossibleList" parameterType="java.util.HashMap" resultType="orders">
+	
+		SELECT ORDERS_NAME, USER_ID, USER_NAME, PHONE, DELIVERY_MESSAGE, FIR_ADDRESS, SEC_ADDRESS, PRODUCT_ID, COUNT, PRICE, TOTAL_PRICE, ORDERSDATE, STATUS, EXCHANGE_MESSAGE, TRACKING_NUMBER, TRACKING_NAME,TRACKING_CODE 
+		FROM ORDERS
+		WHERE STATUS='반품 불가' AND PRODUCT_ID IN(SELECT PRODUCT_ID FROM PRODUCT WHERE USER_ID=#{USER_ID})
+		
+		<if test='keyword != null and !keyword.equals("")'>
+			and #{keywordType} LIKE CONCAT('%',#{keyword},'%')
+		</if>
+		
+		ORDER BY ORDERSDATE desc
+		LIMIT #{currentPage}, 10
+	</select>
+	
+
+	
+	<select id="returnimpossibledetail" parameterType="orders" resultType="orders">
+		SELECT ORDERS_NAME, USER_ID, USER_NAME, PHONE, DELIVERY_MESSAGE, FIR_ADDRESS, SEC_ADDRESS, PRODUCT_ID, COUNT, PRICE, TOTAL_PRICE, ORDERSDATE, STATUS, EXCHANGE_MESSAGE, TRACKING_NUMBER, TRACKING_NAME,TRACKING_CODE 
+		FROM ORDERS
+		WHERE STATUS='반품 불가' AND PRODUCT_ID IN(SELECT PRODUCT_ID FROM PRODUCT WHERE ORDERS_NAME=#{ORDERS_NAME});
+	</select>
+	
+	<select id="returnimpossibledetailname" parameterType="orders" resultType="orders">
+		SELECT PRODUCT_NAME
+		FROM PRODUCT 
+		WHERE PRODUCT_ID IN( 
+							SELECT PRODUCT_ID 
+							FROM ORDERS 
+							WHERE ORDERS_NAME = #{ORDERS_NAME});
+	</select>
+	
+	<select id="getSellerindexOrder" parameterType="orders" resultType="orders">
+		select *
+		from orders
+		where orders_id in (select ORDERS_ID
+							from orders
+							where product_id in (select PRODUCT_ID
+												 from product
+												 where user_id = #{USER_ID}))
+		and status in ('결제 완료')
+		ORDER BY ORDERSDATE DESC LIMIT 0,5
+	</select>
+	
+	<select id="getSellerindexExchange" parameterType="orders" resultType="orders">
+		select *
+		from orders
+		where orders_id in (select ORDERS_ID
+							from orders
+							where product_id in (select PRODUCT_ID
+												 from product
+												 where user_id = #{USER_ID}))
+		and status in ('교환 신청')
+		ORDER BY ORDERSDATE DESC LIMIT 0,5
+	</select>
+	
+	<select id="getSellerindexRetern" parameterType="orders" resultType="orders">
+		select *
+		from orders
+		where orders_id in (select ORDERS_ID
+							from orders
+							where product_id in (select PRODUCT_ID
+												 from product
+												 where user_id = #{USER_ID}))
+		and status in ('반품 신청')
+		ORDER BY ORDERSDATE DESC LIMIT 0,5
+	</select>
+
+	<update id="isReviewed" parameterType="int">
+		UPDATE ORDERS
+		SET IS_REVIEWED = 1
+		WHERE ORDERS_ID = #{ORDERS_ID}
+	</update>
+</mapper>

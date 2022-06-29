@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+	<typeAliases>
+		<typeAlias alias="product" type="kr.co.rudisfarm.model.product.ProductVO"/>
+		<typeAlias alias="productType" type="kr.co.rudisfarm.model.product.ProductTypeVO"/>
+		<typeAlias alias="orders" type="kr.co.rudisfarm.model.orders.OrdersVO"/>
+		<typeAlias alias="user" type="kr.co.rudisfarm.model.user.UserVO"/>
+		<typeAlias alias="rudispayment" type="kr.co.rudisfarm.model.payment.RudisPaymentVO"/>
+		<typeAlias alias="approval" type="kr.co.rudisfarm.model.payment.PaymentVO"/>
+		<typeAlias alias="cancel" type="kr.co.rudisfarm.model.payment.PaymentCancelVO"/>
+		<typeAlias alias="cart" type="kr.co.rudisfarm.model.cart.CartVO"/>
+		<typeAlias alias="ajax" type="kr.co.rudisfarm.model.cart.AjaxVO"/>
+		<typeAlias alias="approval" type="kr.co.rudisfarm.model.payment.PaymentVO"/>
+		<typeAlias alias="cancel" type="kr.co.rudisfarm.model.payment.PaymentCancelVO"/>
+	
+	</typeAliases>
+	
+	<mappers>
+		<mapper resource="/myBatis/mapper/product-mapping.xml"/>
+		<mapper resource="/myBatis/mapper/product_type-mapping.xml"/>
+		<mapper resource="/myBatis/mapper/orders-mapping.xml"/>
+		<mapper resource="/myBatis/mapper/user-mapping.xml"/>
+		<mapper resource="/myBatis/mapper/payment-mapping.xml"/>
+		<mapper resource="/myBatis/mapper/cart-mapping.xml"/>
+		<mapper resource="/myBatis/mapper/payment-mapping.xml"/>
+	</mappers>
+</configuration>

@@ -1,0 +1,19 @@
+@charset "UTF-8";
+
+@media screen and (min-width:991px) {
+	.table-desktop {
+		display: block;
+	}
+	.table-mobile {
+		display: none;
+	}
+}
+
+@media screen and (max-width:990px) {
+	.table-desktop {
+		display: none;
+	}
+	.table-mobile {
+		display: block;
+	}
+}

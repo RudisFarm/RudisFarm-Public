@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ReviewDAO">
+	<select id="getReviewList" parameterType="java.util.HashMap" resultType="review">
+		SELECT *
+		FROM REVIEW
+		<if test='keywordType != null and !keywordType.equals("") and keyword != null and !keyword.equals("")'>
+		WHERE ${keywordType} LIKE CONCAT('%',#{keyword},'%')
+		</if>
+		<if test='sort != null and !sort.equals("")'>
+		ORDER BY ${sort}
+		</if>
+		<if test='sort.equals("WRITEDATE")'>
+		DESC
+		</if>
+		LIMIT #{currentPage}, #{limit}
+	</select>
+	<select id="getReviewListCount" parameterType="java.util.HashMap" resultType="int">
+		SELECT COUNT(*)
+		FROM REVIEW
+		<if test='keyword != null and !keyword.equals("")'>
+		where ${keywordType} LIKE CONCAT('%',#{keyword},'%')
+		</if>
+	</select>
+	<select id="getReviewListSeller" parameterType="java.util.HashMap" resultType="review">
+		SELECT *
+		FROM REVIEW where PRODUCT_ID IN (select PRODUCT_ID from PRODUCT where USER_ID=#{USER_ID})
+		<if test='keywordType != null and !keywordType.equals("") and keyword != null and !keyword.equals("")'>
+		and ${keywordType} LIKE CONCAT('%',#{keyword},'%')
+		</if>
+		<if test='sort != null and !sort.equals("")'>
+		ORDER BY ${sort}
+		</if>
+		<if test='sort.equals("WRITEDATE")'>
+		DESC
+		</if>
+		LIMIT #{currentPage}, #{limit}
+	</select>
+	<select id="getReviewListCountSeller" parameterType="java.util.HashMap" resultType="int">
+		SELECT COUNT(*)
+		FROM REVIEW where PRODUCT_ID IN (select PRODUCT_ID from PRODUCT where USER_ID=#{USER_ID})
+		<if test='keyword != null and !keyword.equals("")'>
+		and ${keywordType} LIKE CONCAT('%',#{keyword},'%')
+		</if>
+	</select>
+		<select id="getReviewListUser" parameterType="java.util.HashMap" resultType="review">
+		SELECT *
+		FROM REVIEW where USER_ID=#{USER_ID}
+		<if test='keywordType != null and !keywordType.equals("") and keyword != null and !keyword.equals("")'>
+		and ${keywordType} LIKE CONCAT('%',#{keyword},'%')
+		</if>
+		<if test='sort.equals("WRITEDATE")'>
+		ORDER BY WRITEDATE DESC
+		</if>
+		LIMIT #{currentPage}, #{limit}
+	</select>
+	<select id="getReviewListCountUser" parameterType="java.util.HashMap" resultType="int">
+		SELECT COUNT(*)
+		FROM REVIEW where USER_ID=#{USER_ID}
+	</select>
+	<select id="getReview" resultType="review" parameterType="review">
+		select * from REVIEW where REVIEW_ID = #{REVIEW_ID}
+	</select>
+	<delete id="deleteReview" parameterType="review">
+		delete from REVIEW where REVIEW_ID = #{REVIEW_ID}
+	</delete>
+<!-- 	<select id="getReviewListSeller" resultType="review" parameterType="review"> -->
+<!-- 		select * from REVIEW where PRODUCT_ID IN (select PRODUCT_ID from PRODUCT where USER_ID=#{USER_ID}) -->
+<!-- 	</select> -->
+	<insert id="insertReview" parameterType="review">
+		insert into REVIEW (USER_ID, PRODUCT_ID, ORDERS_ID, REVIEW_ID, CONTENT, FILES, PRODUCT_RATING, SELLER_RATING) values (#{USER_ID}, #{PRODUCT_ID}, #{ORDERS_ID}, #{REVIEW_ID}, #{CONTENT}, #{FILES}, #{PRODUCT_RATING}, #{SELLER_RATING})
+	</insert>
+<!-- 	<select id="getReviewListUser" resultType="review" parameterType="review"> -->
+<!-- 		select * from REVIEW where USER_ID=#{USER_ID} order by WRITEDATE desc -->
+<!-- 	</select> -->
+	<select id="getReviewListProduct" resultType="review" parameterType="review">
+		select * from REVIEW where PRODUCT_ID=#{PRODUCT_ID} order by WRITEDATE desc
+	</select>
+	<select id="checkReview" resultType="review" parameterType="review">
+		select * from REVIEW where USER_ID=#{USER_ID} and PRODUCT_ID=#{PRODUCT_ID} and ORDERS_ID = #{ORDERS_ID}
+	</select>
+	<update id="updateReview" parameterType="review">
+		update REVIEW set USER_ID=#{USER_ID}, PRODUCT_ID=#{PRODUCT_ID}, CONTENT=#{CONTENT}, FILES=#{FILES}, PRODUCT_RATING=#{PRODUCT_RATING}, SELLER_RATING=#{SELLER_RATING}
+		where REVIEW_ID = #{REVIEW_ID}
+	</update>
+</mapper>

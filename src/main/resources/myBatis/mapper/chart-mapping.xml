@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ChartDAO">
+	<select id="getType2List" resultType="chart" parameterType="chart">
+		select TYPE2
+		from product
+		where user_id = #{USER_ID}
+	</select>
+	
+	<select id="getUserYearList" resultType="chart" parameterType="chart">
+		select * from (
+		select year(JOINDATE) YEAR, count(*) COUNT 
+		from user
+		group by
+		year(JOINDATE) 
+		order by year desc 
+		limit 5) as result
+		GROUP BY result.year
+	</select>
+	
+	<select id="getUserCount" resultType="int">
+		select count(*) USER_COUNT
+		from user
+	</select>
+	
+	<select id="getProductYearList" resultType="chart" parameterType="chart">
+		select * from (
+		select year(INPUTDATE) YEAR, count(*) COUNT 
+		from product
+		group by
+		year(INPUTDATE) 
+		order by year desc 
+		limit 5) as result
+		GROUP BY result.year
+	</select>
+	
+	<select id="getProductCount" resultType="int">
+		select count(*) PRODUCT_COUNT
+		from PRODUCT
+	</select>
+	
+	<select id="getOrderYearList" resultType="chart" parameterType="chart">
+		select * from (
+		select year(ORDERSDATE) YEAR, count(*) COUNT 
+		from orders
+		group by
+		year(ORDERSDATE) 
+		order by year desc 
+		limit 5 ) as result
+		GROUP BY result.year
+	</select>
+	
+	<select id="getOrderCount" resultType="int">
+		select count(*) PRODUCT_COUNT
+		from orders
+	</select>
+	
+	<select id="getPriceYearList" resultType="chart" parameterType="chart">
+		select year(ORDERSDATE) YEAR, sum(COUNT*PRICE) TOTAL_PRICE
+		from orders
+		group by
+		year(ORDERSDATE) 
+		order by year desc 
+		limit 5
+	</select>
+	
+	<select id="getTotalPrice" resultType="int">
+		select sum(COUNT*PRICE) YEAR_PRICE
+		from  orders
+	</select>
+	
+	<select id="getMinMax" resultType="chart" parameterType="chart">
+		select max(ceiling((price*1000)/weight)) MAX, min(ceiling((price*1000)/weight)) MIN
+		from product
+		where type2 = #{TYPE2}
+	</select>
+	
+	<select id="getSellerPrice" resultType="int">
+		select sum(O.COUNT*O.PRICE) TOTAL_PRICE
+		from  orders O, product P
+		where O.product_id = P.product_id and P.user_id = #{id}
+	</select>
+	
+	<select id="getSellerOrders" resultType="int">
+		select count(*) ORDER_COUNT
+		from  orders O, product P
+		where O.product_id = P.product_id and P.user_id = #{id}
+	</select>
+	
+	<select id="getSellerCount" resultType="int">
+		select count(*) SELLER_COUNT
+		from  product
+		where user_id = #{id}
+	</select>
+	
+	<select id="getSellerReview" resultType="int">
+		select count(*) SELLER_COUNT
+		from  review r, product p
+		where r.product_id = p.product_id and p.user_id = #{id}
+	</select>
+	
+	<select id="getSellerPriceList" resultType="chart" parameterType="String">
+		select year(O.ORDERSDATE) YEAR, sum(O.COUNT*O.PRICE) TOTAL_PRICE
+		from orders O, product P
+		where O.product_id = P.product_id and P.user_id = #{id}
+		group by
+		year(ORDERSDATE) 
+		order by year desc 
+		limit 5 
+	</select>
+	
+	<select id="getSellerOrderList" resultType="chart" parameterType="String">
+		select * from (
+		select year(ORDERSDATE) YEAR, count(*) COUNT
+		from orders O, product P
+		where O.product_id = P.product_id and P.user_id = #{id}
+		group by
+		year(ORDERSDATE) 
+		order by year desc 
+		limit 5 ) as result
+		GROUP BY result.year
+	</select>
+	
+	<select id="getSellerItemList" resultType="chart" parameterType="String">
+		select * from (
+		select year(INPUTDATE) YEAR, count(*) COUNT 
+		from  product 
+		where user_id = #{id}
+		group by
+		year(INPUTDATE) 
+		order by year desc 
+		limit 5 ) as result
+		GROUP BY result.year
+	</select>
+	
+	<select id="getSellerReviewList" resultType="chart" parameterType="String">
+		select * from (
+		select year(WRITEDATE) YEAR, count(*) COUNT 
+		from  review r, product p
+		where r.product_id = p.product_id and p.user_id = #{id}
+		group by
+		year(WRITEDATE) 
+		order by year desc
+		limit 5) as result
+		GROUP BY result.year
+	</select>
+
+	
+	
+	
+</mapper>

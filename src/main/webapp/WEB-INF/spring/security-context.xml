@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:security="http://www.springframework.org/schema/security"
+	xsi:schemaLocation="http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+		
+		<security:http pattern="/**/*.js" security="none" />
+		<security:http pattern="/**/*.css" security="none" />
+		<security:http pattern="/images/**" security="none" />
+		
+		<security:http pattern="/admin/**" auto-config="true" use-expressions="true">
+			<security:intercept-url pattern="/resources/**" access="permitAll" />
+			
+
+			<security:intercept-url pattern="/admin/admin-login/**" access="isAnonymous()" />
+			<security:intercept-url pattern="/admin/admin-login-process/**" access="isAnonymous()" />
+  			<security:intercept-url pattern="/admin/admin-find/**" access="isAnonymous()" />
+  			<security:intercept-url pattern="/admin/**" access="hasRole('ADMIN')" />
+			
+			<security:form-login login-page="/admin/admin-login"
+				default-target-url="/admin/admin-index"
+				login-processing-url="/admin/admin-login-process"
+				username-parameter="USER_ID"
+				password-parameter="PASSWORD"
+				authentication-failure-handler-ref="adminLoginFailHandler"
+				authentication-success-handler-ref="adminLoginSuccessHandler" />
+				
+			<!-- 로그아웃 설정 -->
+			<security:logout logout-url="/admin/admin-logout"
+				logout-success-url="/admin/admin-login"
+				invalidate-session="true"
+				delete-cookies="true" />
+				
+			<!-- 권한이 없어서 금지된 URI 접속할 때 보여줄 페이지(403 에러 페이지 대체) -->
+			<security:access-denied-handler error-page="/error403"/>
+		</security:http>
+		
+		<security:http pattern="/**" auto-config="true" use-expressions="true">
+			<!-- 정적 리소스는 모두 접근 허용 -->
+			<security:intercept-url pattern="/resources/**" access="permitAll" />
+			
+			<security:intercept-url pattern="/" access="hasRole('BUYER') or isAnonymous()" />
+		
+			<!-- 로그인된 상태에서는 로그인이나 회원가입 화면에 접근 못하도록 함 -->
+			<security:intercept-url pattern="/login/**" access="isAnonymous()" />
+			<security:intercept-url pattern="/login-process/**" access="isAnonymous()" />
+			<security:intercept-url pattern="/join/**" access="isAnonymous()" />
+			<security:intercept-url pattern="/seller-join/**" access="isAnonymous()" />
+			<security:intercept-url pattern="/find/**" access="isAnonymous()" />
+			<security:intercept-url pattern="/admin/admin-find/**" access="isAnonymous()" />
+			<security:intercept-url pattern="/my-page/socialout" access="hasRole('BUYER') or isAnonymous()" />
+			<security:intercept-url pattern="/my-page/my-cart-list" access="isAnonymous() or hasRole('BUYER')" />
+			
+			<!-- 관리자 페이지는 관리자만 접근 허용 -->
+			<security:intercept-url pattern="/admin/**" access="hasRole('ADMIN')" />
+			
+			<!-- 판매자 페이지는 관리자만 접근 허용 -->
+			<security:intercept-url pattern="/seller/**" access="hasRole('SELLER')" />
+			
+			<!-- 구매자 페이지는 관리자만 접근 허용 -->
+			<security:intercept-url pattern="/my-page/**" access="hasRole('BUYER')" />
+			
+			<!-- 추가적인 개별 필터링 -->
+			<security:intercept-url pattern="/product/**" access="hasRole('BUYER') or isAnonymous()" />
+<!-- 			<security:intercept-url pattern="/orders-payment" access="hasRole('BUYER')" /> -->
+			
+			<!-- 이외의 페이지는 구매자에게만 접근 허용 -->
+<!-- 			<security:intercept-url pattern="/**" access="hasRole('BUYER')" /> -->
+			<security:intercept-url pattern="/**" access="permitAll" />
+			
+			<!-- 로그인 설정 -->
+			<security:form-login login-page="/login"
+				default-target-url="/"
+				login-processing-url="/login-process"
+				username-parameter="USER_ID"
+				password-parameter="PASSWORD"
+				authentication-failure-handler-ref="userLoginFailHandler"
+				authentication-success-handler-ref="userLoginSuccessHandler" />
+				
+			<!-- 로그아웃 설정 -->
+			<security:logout logout-url="/logout"
+				logout-success-url="/"
+				invalidate-session="true"
+				delete-cookies="true" />
+				
+			<!-- 권한이 없어서 금지된 URI 접속할 때 보여줄 페이지(403 에러 페이지 대체) -->
+			<security:access-denied-handler error-page="/error403"/>
+			
+		</security:http>
+
+		<!-- provider --> 
+<!-- 		<security:authentication-manager> -->
+<!-- 			<security:authentication-provider user-service-ref="userLoginService"> -->
+<!-- 			</security:authentication-provider> -->
+<!-- 		</security:authentication-manager> -->
+		<security:authentication-manager>
+			<security:authentication-provider ref="userLoginAuthenticationProvider">
+			</security:authentication-provider>
+		</security:authentication-manager>
+		
+		<bean id="userLoginService" class="kr.co.rudisfarm.model.commons.security.UserDetailsServiceCustom">
+   		</bean>
+</beans>

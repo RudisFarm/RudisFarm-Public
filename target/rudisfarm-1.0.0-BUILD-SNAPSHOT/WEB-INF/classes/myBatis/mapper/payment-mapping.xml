@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="PaymentDAO">
+	<insert id="insertPayment" parameterType="approval">
+		INSERT INTO 
+		PAYMENT (CID, TID, AID, STATUS, PARTNER_ORDER_ID, PARTNER_USER_ID, ITEM_NAME, QUANTITY,
+					TOTAL_AMOUNT, TAX_FREE_AMOUNT, VAT_AMOUNT, PAYMENT_METHOD_TYPE, CANCEL_AMOUNT)
+		VALUES (#{CID}, #{TID}, #{AID}, #{STATUS}, #{PARTNER_ORDER_ID}, #{PARTNER_USER_ID}, #{ITEM_NAME}, 
+					#{QUANTITY}, #{TOTAL_AMOUNT}, #{TAX_FREE_AMOUNT}, #{VAT_AMOUNT}, #{PAYMENT_METHOD_TYPE}, #{CANCEL_AMOUNT})
+	</insert>
+	
+	<select id="kakaoOrderList" resultType="approval">
+		SELECT * FROM PAYMENT
+	</select>
+	
+	<insert id="insertPaymentCancel" parameterType="cancel">
+		INSERT INTO PAYMENT_CANCEL
+				(TID, AID, STATUS, PARTNER_ORDER_ID, PARTNER_USER_ID, ITEM_NAME, QUANTITY, TOTAL_AMOUNT, 
+		 		TAX_FREE_AMOUNT, VAT_AMOUNT, PAYMENT_METHOD_TYPE, CANCEL_AMOUNT)
+		VALUES(#{TID}, #{AID},#{STATUS},#{PARTNER_ORDER_ID},#{PARTNER_USER_ID},#{ITEM_NAME},#{QUANTITY},#{TOTAL_AMOUNT},
+				#{TAX_FREE_AMOUNT},#{VAT_AMOUNT},#{PAYMENT_METHOD_TYPE},#{CANCEL_AMOUNT})
+	</insert>
+	
+
+	<update id="updateStatusPayment" parameterType="String">
+		UPDATE PAYMENT SET STATUS = 'CANCEL_PAYMENT' WHERE TID = #{TID}
+	</update>
+	
+</mapper>

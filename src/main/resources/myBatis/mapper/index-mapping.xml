@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="indexDAO">
+
+	<!-- 프리미엄 회원 랜덤 3개 -->
+	<select id="getIndexPremiumProduct" resultType="product">
+		SELECT *
+		FROM PRODUCT
+		WHERE user_id IN (SELECT DISTINCT USER_ID
+						  FROM USER
+						  WHERE STATUS = 1 AND LEVEL = 1 AND PREMIUM_COUNT > 0)
+		ORDER BY RAND() limit 3
+	</select>
+	
+<!-- 	SELECT p.*
+		FROM product p join user u
+		WHERE p.USER_ID = u.USER_ID and u.IS_PREMIUM = 1
+		ORDER BY RAND() limit 3
+ -->
+
+	<!-- 신규 상품:4개 -->
+	<select id="getIndexNewProduct" resultType="product">
+		SELECT *
+		FROM product 
+		WHERE COUNT > 0
+		AND USER_ID IN (SELECT USER_ID
+						FROM USER
+						WHERE STATUS = 1 AND LEVEL = 1)
+		ORDER BY INPUTDATE DESC limit 4
+	</select>
+
+	<!-- 추천 상품:랜덤 4개 -->
+	<select id="getIndexRecommendProduct" resultType="product">
+		select *
+		from product
+		where PRODUCT_ID in 
+		(select PRODUCT_ID 
+		 from (select PRODUCT_ID, AVG(PRODUCT_RATING) as "RATING_RANK"
+		       from review
+		       group by PRODUCT_ID
+		       order by RATING_RANK desc) c)
+		ORDER BY RAND() limit 4
+	</select>
+	
+	<!-- 인기 상품:4개-->
+	
+	
+</mapper>

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="UserDAO">
+	<!-- #공통 -->
+	<!-- 클라이언트 로그인 -->
+	<select id="userLogin" parameterType="user" resultType="user">
+		SELECT *
+		FROM USER
+		WHERE USER_ID = #{USER_ID} AND PASSWORD = #{PASSWORD}
+	</select>
+
+	<!-- #슈퍼 관리자 -->
+	<select id="getAdmin" resultType="user" parameterType="user">
+		select * from USER where USER_ID = #{USER_ID} and PASSWORD = #{PASSWORD} and LEVEL = #{LEVEL}
+	</select>
+	<update id="changeAdmin" parameterType="user">
+	update USER set USER_ID=#{USER_ID}, PASSWORD = #{PASSWORD}, EMAIL = #{EMAIL}, NAME = #{NAME}, STATUS=#{STATUS}, PHONE=#{PHONE} where LEVEL = #{LEVEL}
+	</update>
+	<select id="isAdminExists" resultType="string" parameterType="user">
+		select * from USER where LEVEL = #{LEVEL}
+	</select>
+	<insert id="createAdmin" parameterType="user">
+	insert into USER(USER_ID, PASSWORD, EMAIL, NAME, LEVEL, STATUS) values(#{USER_ID}, #{PASSWORD}, #{EMAIL}, #{NAME}, #{LEVEL}, #{STATUS})
+	</insert>
+	<select id="findAdmin" resultType="user" parameterType="user">
+		select * from USER where EMAIL = #{EMAIL} and LEVEL = #{LEVEL}
+	</select>
+	<select id="selectAdminSellerList" resultType="user">
+		SELECT *
+		FROM USER
+		WHERE LEVEL = 1
+	</select>
+	<update id="updaetAdminSeller" parameterType="user">
+		UPDATE USER
+		SET STATUS = #{STATUS}
+		WHERE USER_ID = #{USER_ID}
+	</update>
+	<delete id="deleteAdminSeller" parameterType="user">
+		DELETE
+		FROM USER
+		WHERE USER_ID = #{USER_ID}
+	</delete>
+	
+	<!-- #판매자 -->
+	<!-- 판매자 회원가입 -->
+	<insert id="sellerJoin" parameterType="user">
+		INSERT INTO USER
+		VALUES (#{USER_ID}, #{PASSWORD}, #{EMAIL}, #{NAME}, #{FIR_ADDRESS}, #{SEC_ADDRESS}, #{PHONE}, NOW(), NULL, NULL, #{SERIAL}, #{SERIAL_RESULT}, #{FILE}, 1, 0)
+	</insert>
+	<insert id="insertEmailCheck" parameterType="java.util.HashMap">
+		INSERT INTO EMAIL_CHECK(EMAIL, CHECK_KEY, CHECK_TYPE)
+		VALUES (#{EMAIL}, #{validationKey}, #{CHECK_TYPE})
+	</insert>	
+	<!-- 판매자 내 정보 조회 -->
+	<select id="selectSeller" parameterType="user" resultType="user">
+		SELECT *
+		FROM USER
+		WHERE USER_ID = #{USER_ID}
+	</select>
+	<update id="updaetSeller" parameterType="user">
+		UPDATE USER
+		SET NAME = #{NAME}, FIR_ADDRESS = #{FIR_ADDRESS}, SEC_ADDRESS = #{SEC_ADDRESS}, PHONE = #{PHONE}
+		WHERE USER_ID = #{USER_ID}
+	</update>
+	<select id="selectCheckSellerPassword" parameterType="user" resultType="int">
+		SELECT COUNT(*)
+		FROM USER
+		WHERE USER_ID = #{USER_ID} AND PASSWORD = #{PASSWORD}
+	</select>
+	<update id="updaetSellerPassword" parameterType="user">
+		UPDATE USER
+		SET PASSWORD = #{PASSWORD}
+		WHERE USER_ID = #{USER_ID}
+	</update>
+	<update id="updaetSellerSerial" parameterType="user">
+		UPDATE USER
+		SET SERIAL = #{SERIAL}, FILE = #{FILE}, SERIAL_RESULT = #{SERIAL_RESULT}, STATUS = 3
+		WHERE USER_ID = #{USER_ID}
+	</update>
+	<update id="deleteSeller" parameterType="user">
+		UPDATE USER
+		SET STATUS = 5
+		WHERE USER_ID = #{USER_ID}
+	</update>
+	
+	
+	<!-- #구매자 -->
+	
+</mapper>

@@ -1,0 +1,8 @@
+- 컨트롤러 : 테이블명Controller
+- 인터페이스(서비스) : 테이블명Service
+- 실제 객체(Impl) : 테이블명ServiceImpl
+- DAO : 테이블명DAO
+- VO : 테이블명VO
+
+강일빈 작업 연습(깃)
+이동준 작업 연습(깃)2

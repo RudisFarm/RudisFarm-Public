@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="RudisPaymentDAO">
+	
+	<select id="getPaymentList" resultType="rudispayment">
+		SELECT O.ORDERS_ID, O.USER_ID, P.* FROM ORDERS O JOIN RUDISPAYMENT P
+		WHERE O.PAYMENT_ID=P.PAYMENT_ID AND O.STATUS=0 AND USER_ID=#{USER_ID}
+	</select>
+	
+
+</mapper>

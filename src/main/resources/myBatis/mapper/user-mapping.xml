@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="UserDAO">
+	<!-- 임시!!!!!!!!!!!!! 나중ㅇ 반드시 지우기 -->
+	<select id="allUser" resultType="user">
+		SELECT *
+		FROM USER
+	</select>
+	<update id="encode" parameterType="user">
+		UPDATE USER
+		SET PASSWORD = #{PASSWORD}
+		WHERE USER_ID = #{USER_ID}
+	</update>
+
+	<!-- #공통 -->
+	<!-- 클라이언트 로그인 -->
+	<select id="userLogin" parameterType="user" resultType="user">
+		SELECT *
+		FROM USER
+		WHERE USER_ID = #{USER_ID} AND PASSWORD = #{PASSWORD}
+	</select>
+	
+	<!-- 바이어 회원가입 -->
+	<insert id="buyerJoin" parameterType="user"> 
+		INSERT INTO USER (USER_ID, PASSWORD, EMAIL, USER_NAME, FIR_ADDRESS, SEC_ADDRESS, PHONE, BIRTHDATE, GENDER, LEVEL, STATUS, PLATFORM) 
+		VALUES (#{USER_ID}, #{PASSWORD}, #{EMAIL}, #{USER_NAME}, #{FIR_ADDRESS}, #{SEC_ADDRESS}, #{PHONE}, #{BIRTHDATE}, #{GENDER}, 2, 1 , #{PLATFORM})
+	</insert> 
+
+	<!-- 아이디 중복 확인 -->
+	<select id="idcheck" parameterType="String" resultType="int">
+		SELECT COUNT(*) 
+		FROM USER
+		WHERE USER_ID = #{USER_ID}
+	</select>
+
+	<!-- 이메일 중복 확인(바이어 + 셀러) -->
+	<select id="emailcheck" parameterType="String" resultType="int">
+		SELECT COUNT(*) 
+		FROM USER
+		WHERE EMAIL = #{EMAIL} AND LEVEL IN (1, 2)
+	</select>
+	
+	<!-- 아이디로 비밀번호 찾기(바이어 + 셀러) -->
+	<select id="passcheck" parameterType="String" resultType="String">
+		SELECT PASSWORD
+		FROM USER
+		WHERE USER_ID = #{USER_ID} AND LEVEL IN (1, 2)
+	</select>
+	
+	<!-- 유저 개인 상세 정보(바이어) -->
+	<select id="buyerDetail" parameterType="String" resultType="user">
+		SELECT *
+		FROM USER
+		WHERE USER_ID = #{USER_ID}
+	</select>
+	
+	<!-- 개인 정보 수정(바이어) -->
+	<update id="buyerInfoModify" parameterType="user">
+		UPDATE USER 
+		SET PASSWORD = #{PASSWORD}, USER_NAME = #{USER_NAME}, FIR_ADDRESS = #{FIR_ADDRESS}, SEC_ADDRESS = #{SEC_ADDRESS}, PHONE = #{PHONE}, GENDER = #{GENDER} WHERE USER_ID = #{USER_ID}
+	</update>
+	
+		<!-- 개인 정보 수정(소셜로그인) -->
+	<update id="buyerInfoModifySocial" parameterType="user">
+		UPDATE USER 
+		SET FIR_ADDRESS = #{FIR_ADDRESS}, SEC_ADDRESS = #{SEC_ADDRESS}, PHONE = #{PHONE}, GENDER = #{GENDER} WHERE USER_ID = #{USER_ID}
+	</update>
+	
+	<!-- 유저 개인 회원 탈퇴(바이어) -->
+	<update id="buyerDelete" parameterType="String">
+		UPDATE USER
+		SET STATUS = 5
+		WHERE USER_ID = #{USER_ID}
+	</update>
+	
+	<delete id="buyerDeleteCart" parameterType="String">
+		DELETE 
+		FROM CART
+		WHERE USER_ID = #{USER_ID}
+	</delete>
+	
+	<!-- 아이디 찾기 -->
+	<select id="findId" parameterType="String" resultType="user">
+		SELECT USER_ID, JOINDATE, PLATFORM
+		FROM USER
+		WHERE EMAIL = #{EMAIL}
+	</select>
+	
+	<!-- 임시 비밀번호 USER 테이블에 저장하기 -->
+	<update id="temporaryPw" parameterType="user">
+		UPDATE USER 
+		SET PASSWORD = #{PASSWORD}
+		WHERE EMAIL = #{EMAIL}
+	</update>
+	
+	
+	<!-- #슈퍼 관리자 -->
+	<select id="getAdmin" resultType="user" parameterType="user">
+		select * from USER where USER_ID = #{USER_ID} <!--  and PASSWORD = #{PASSWORD} --> and LEVEL = #{LEVEL}
+	</select>
+	<update id="changeAdmin" parameterType="user">
+	update USER set USER_ID=#{USER_ID}, PASSWORD = #{PASSWORD}, EMAIL = #{EMAIL}, USER_NAME = #{USER_NAME}, STATUS=#{STATUS}, PHONE=#{PHONE} where LEVEL = #{LEVEL}
+	</update>
+	<select id="isAdminExists" resultType="string" parameterType="user">
+		select * from USER where LEVEL = #{LEVEL}
+	</select>
+	<insert id="createAdmin" parameterType="user">
+	insert into USER(USER_ID, PASSWORD, EMAIL, USER_NAME, PHONE, LEVEL, STATUS) values(#{USER_ID}, #{PASSWORD}, #{EMAIL}, #{USER_NAME}, "00000000000", #{LEVEL}, #{STATUS})
+	</insert>
+	<select id="findAdmin" resultType="user" parameterType="user">
+		select * from USER where EMAIL = #{EMAIL} and LEVEL = #{LEVEL}
+	</select>
+	<select id="getBuyerList" resultType="user" parameterType="user">
+		select * from USER where LEVEL=2;
+	</select>
+	<select id="getBuyer" resultType="user" parameterType="user">
+		select * from USER where LEVEL=2 and USER_ID=#{USER_ID}
+	</select>
+	<select id="selectAdminBuyerListCount" parameterType="java.util.HashMap" resultType="int">
+		SELECT COUNT(*)
+		FROM USER
+		WHERE LEVEL = 2
+		<if test='keyword != null and !keyword.equals("")'>
+		AND ${keywordType} LIKE CONCAT('%',#{keyword},'%')
+		</if>
+	</select>
+	<select id="selectAdminBuyerList" parameterType="java.util.HashMap" resultType="user">
+		SELECT *
+		FROM USER
+		WHERE LEVEL = 2
+		<if test='keywordType != null and !keywordType.equals("") and keyword != null and !keyword.equals("")'>
+		AND ${keywordType} LIKE CONCAT('%',#{keyword},'%')
+		</if>
+		<if test='sort != null and !sort.equals("")'>
+		ORDER BY ${sort}
+		</if>
+		<if test='sort.equals("JOINDATE")'>
+		DESC
+		</if>
+		LIMIT #{currentPage}, #{limit}
+	</select>
+<!-- 	<select id="selectAdminSellerList" resultType="user"> -->
+<!-- 		SELECT * -->
+<!-- 		FROM USER -->
+<!-- 		WHERE LEVEL = 1 -->
+<!-- 	</select> -->
+	<select id="selectAdminSellerListCount" parameterType="java.util.HashMap" resultType="int">
+		SELECT COUNT(*)
+		FROM USER
+		WHERE LEVEL = 1
+		<if test='keyword != null and !keyword.equals("")'>
+		AND ${keywordType} LIKE CONCAT('%',#{keyword},'%')
+		</if>
+	</select>
+	<select id="selectAdminSellerList" parameterType="java.util.HashMap" resultType="user">
+		SELECT *
+		FROM USER
+		WHERE LEVEL = 1
+		<if test='keywordType != null and !keywordType.equals("") and keyword != null and !keyword.equals("")'>
+		AND ${keywordType} LIKE CONCAT('%',#{keyword},'%')
+		</if>
+		<if test='sort != null and !sort.equals("")'>
+		ORDER BY ${sort}
+		</if>
+		<if test='sort.equals("JOINDATE")'>
+		DESC
+		</if>
+		LIMIT #{currentPage}, #{limit}
+	</select>
+	<update id="updaetAdminSeller" parameterType="user">
+		UPDATE USER
+		SET STATUS = #{STATUS}
+		WHERE USER_ID = #{USER_ID}
+	</update>
+	<delete id="deleteAdminSeller" parameterType="user">
+		DELETE
+		FROM USER
+		WHERE USER_ID = #{USER_ID}
+	</delete>
+	<select id="checkAdmin" parameterType="String" resultType="int">
+		SELECT COUNT(*)
+		FROM USER 
+		WHERE EMAIL = #{EMAIL} and LEVEL = 0
+	</select>
+	<!-- #판매자 -->
+	<!-- 판매자 회원가입 -->
+	<insert id="sellerJoin" parameterType="user">
+		INSERT INTO USER
+		VALUES (#{USER_ID}, #{PASSWORD}, #{EMAIL}, #{USER_NAME}, #{COMPANY_NAME}, #{FIR_ADDRESS}, #{SEC_ADDRESS}, #{PHONE}, NOW(), NULL, NULL, #{SERIAL}, #{SERIAL_RESULT}, #{FILE}, 1, 0, 'rudisfarm', NULL, NULL)
+	</insert>
+	<insert id="insertEmailCheck" parameterType="java.util.HashMap">
+		INSERT INTO EMAIL_CHECK(EMAIL, CHECK_KEY, CHECK_TYPE)
+		VALUES (#{EMAIL}, #{validationKey}, #{CHECK_TYPE})
+	</insert>	
+	<!-- 판매자 내 정보 조회 -->
+	<select id="selectSeller" parameterType="user" resultType="user">
+		SELECT *
+		FROM USER
+		WHERE USER_ID = #{USER_ID}
+	</select>
+	<update id="updaetSeller" parameterType="user">
+		UPDATE USER
+		SET USER_NAME = #{USER_NAME}, COMPANY_NAME = #{COMPANY_NAME}, FIR_ADDRESS = #{FIR_ADDRESS}, SEC_ADDRESS = #{SEC_ADDRESS}, PHONE = #{PHONE}
+		WHERE USER_ID = #{USER_ID}
+	</update>
+	<select id="selectCheckSellerPassword" parameterType="user" resultType="int">
+		SELECT COUNT(*)
+		FROM USER
+		WHERE USER_ID = #{USER_ID} AND PASSWORD = #{PASSWORD}
+	</select>
+	<update id="updaetSellerPassword" parameterType="user">
+		UPDATE USER
+		SET PASSWORD = #{PASSWORD}
+		WHERE USER_ID = #{USER_ID}
+	</update>
+	<update id="updaetSellerSerial" parameterType="user">
+		UPDATE USER
+		SET SERIAL = #{SERIAL}, FILE = #{FILE}, SERIAL_RESULT = #{SERIAL_RESULT}, STATUS = 3
+		WHERE USER_ID = #{USER_ID}
+	</update>
+	<update id="deleteSeller" parameterType="user">
+		UPDATE USER
+		SET STATUS = 5
+		WHERE USER_ID = #{USER_ID} 
+	</update>
+	<select id="selectAllSellerList" resultType="user">
+		SELECT *
+		FROM USER
+		WHERE LEVEL = 1
+	</select>
+	<update id="updaetAutoSellerSerial" parameterType="user">
+		UPDATE USER
+		SET SERIAL_RESULT = #{SERIAL_RESULT}, STATUS = #{STATUS}
+		WHERE USER_ID = #{USER_ID}
+	</update>
+	<select id="selectSellerCurrentIncome" parameterType="java.lang.String" resultType="int">
+		SELECT CURRENT_INCOME
+		FROM USER
+		WHERE USER_ID = #{USER_ID}
+	</select>
+	<update id="updateSellerCurrentIncome" parameterType="user">
+		UPDATE USER
+		SET CURRENT_INCOME = CURRENT_INCOME + #{CURRENT_INCOME}
+		WHERE USER_ID = #{USER_ID}
+	</update>
+	
+	
+	<!-- #구매자 -->
+	
+	
+	<!-- 스프링 시큐리티 로그인 -->
+	<select id="getUserByID" parameterType="java.lang.String" resultType="user">
+		SELECT *
+		FROM USER
+		WHERE BINARY USER_ID = #{USER_ID}
+	</select>
+	
+	<!-- 소셜 -->
+	<select id="getUserByEmail" parameterType="java.lang.String" resultType="user">
+		SELECT *
+		FROM USER
+		WHERE BINARY EMAIL = #{EMAIL}
+	</select>
+	<select id="getSocialUserByID" parameterType="java.util.HashMap" resultType="user">
+		SELECT *
+		FROM USER
+		WHERE BINARY USER_ID = #{USER_ID} AND PLATFORM = #{PLATFORM}
+	</select>
+	<update id="outSocialUser" parameterType="java.lang.String">
+		UPDATE USER
+		SET STATUS = 5
+		WHERE USER_ID = #{USER_ID}
+	</update>
+	<update id="rejoinSocialUser" parameterType="java.lang.String">
+		UPDATE USER
+		SET STATUS = 1, JOINDATE = NOW()
+		WHERE USER_ID = #{USER_ID}
+	</update>
+	
+	<update id="isPremiumUpdate">
+		UPDATE USER
+		SET PREMIUM_COUNT = #{PREMIUM_COUNT}
+		WHERE USER_ID = #{USER_ID}
+	</update>
+
+	
+	<!-- ADMIN INDEX -->
+	<select id="adminIndexUser" parameterType="user" resultType="int">
+		SELECT COUNT(*)
+		FROM USER
+		WHERE LEVEL='1' OR LEVEL='2' AND STATUS='1'
+	</select>
+</mapper>

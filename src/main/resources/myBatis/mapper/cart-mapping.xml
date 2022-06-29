@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="CartDAO">
+	
+	<select id="getCartList" resultType="cart" parameterType="cart">
+		select CART_ID, U.USER_ID, P.SUMNAIL, P.PRODUCT_ID, P.PRODUCT_NAME, P.PRICE, C.COUNT, (P.PRICE*C.COUNT) PAY, ADDDATE
+		from USER U, PRODUCT P, CART C
+		where U.USER_ID=C.USER_ID and P.PRODUCT_ID=C.PRODUCT_ID and  C.USER_ID= #{USER_ID}
+		order by  ADDDATE desc
+	</select>
+
+	<select id="sumMoney" resultType="int">
+		select ifnull(sum(P.PRICE*C.COUNT),0)
+		from CART C, PRODUCT P
+		where C.PRODUCT_ID = P.PRODUCT_ID and C.USER_ID = #{USER_ID}
+	</select>
+	
+	<update id="cartUpdate" parameterType="ajax">
+	 	update CART 
+	 	set COUNT=${COUNT}
+	 	where CART_ID=${CART_ID}
+	</update>
+	
+	<delete id="cartDelete" parameterType="ajax">
+		delete from CART
+		where CART_ID=${CART_ID}
+	</delete>
+	
+	<select id="cartChoice"  resultType="ajax" parameterType="ajax">
+		select U.USER_ID, P.PRODUCT_ID, P.PRODUCT_NAME, C.COUNT, (P.PRICE*C.COUNT) PAY
+		from USER U, PRODUCT P, CART C
+		where U.USER_ID=C.USER_ID and P.PRODUCT_ID=C.PRODUCT_ID and  C.CART_ID= #{CART_ID}
+	</select>
+
+	<insert id="addCart" parameterType="java.util.HashMap">
+		insert into cart(USER_ID, PRODUCT_ID, COUNT) values(#{USER_ID}, ${PRODUCT_ID}, ${COUNT})
+	</insert>
+		
+	<select id="getCart" parameterType="cart" resultType="cart">
+		select * from cart where cart_id=#{CART_ID}
+	</select>
+	
+</mapper>
